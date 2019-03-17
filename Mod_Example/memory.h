@@ -1,0 +1,134 @@
+#ifndef __MEMORY__H
+#define __MEMORY__H
+
+
+//#include <windows.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include "memory.h"
+#include "linkedlist.h"
+
+
+
+struct Memory_Struct
+{
+	int size;
+	int line;
+	char filename[256];
+	int* address;
+};
+
+void *vAlloc(int size, int line, char* filename);
+void vFree(void* chunk, int line, char* filename);
+void vMemoryResults();
+
+#define Alloc(size)  vAlloc(size, __LINE__, __FILE__);
+
+#ifdef DEBUG
+#define Free(chunk) vFree(chunk, __LINE__, __FILE__);
+#else
+#define Free(chunk) free(chunk);
+#endif
+
+struct list memoryContainer = {};
+
+#define DEBUG 0 
+
+int FindMemoryStruct(struct list* memoryContainer, int* address);
+
+void *vAlloc(int size, int line, char* filename)
+{
+	/*
+	void* result = VirtualAlloc(0,size,MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	*/
+	int* result = (int*) malloc(size);
+	memset(result,0,size);
+	
+	struct Memory_Struct *memStruct = (struct Memory_Struct*) malloc(sizeof(struct Memory_Struct));
+	memset(memStruct,0,sizeof(struct Memory_Struct));
+	/*
+	#ifdef DEBUG
+	memStruct->size = size;
+	memStruct->line = line;
+	memStruct->address = result;
+	strcpy(memStruct->filename, filename);
+
+	AddToList(&memoryContainer, (int*)memStruct );
+	#endif
+	*/
+	return result;
+}
+
+
+void vFree(void* chunk, int line, char* filename)
+{
+	//VirtualFree(chunk, 0,MEM_RELEASE);
+	//free(chunk);
+	//chunk=NULL;
+	/*
+	#ifdef DEBUG
+	int index = FindMemoryStruct(&memoryContainer, (int*) chunk);
+	DeleteFromList(&memoryContainer,index); 
+	#else
+	*/
+	free(chunk);
+	chunk=NULL;
+	//#endif
+
+
+}
+
+int FindMemoryStruct(struct list* memoryContainer, int* address)
+{
+
+	for (struct link* iter = memoryContainer->head; iter != NULL; iter = iter->next)
+	{
+		if (iter->address)
+		{
+			struct Memory_Struct *mem = (struct Memory_Struct*) iter->address;
+
+			if (mem->address == address)
+			{
+				//free(mem->address);
+				//mem->address = NULL;
+				return iter->id;
+			}
+		}
+
+	}
+
+	return -1;
+}
+
+
+
+void vMemoryResults()
+{
+	
+	if (memoryContainer.count == 0)
+	{
+	} else {
+		
+		for (struct link *mc = memoryContainer.head; mc !=NULL;mc = mc->next )
+		{
+			if (mc->free == false)
+			{
+				struct Memory_Struct *ms = (struct Memory_Struct*) mc->address;
+				if (ms->address)
+				{
+					printf("file: %s, line %i\n", ms->filename, ms->line);	
+				}
+			}
+		}
+	}
+
+	//DeleteList(&memoryContainer);
+	
+	memoryContainer.count=0;
+	memoryContainer.head = NULL;
+	memoryContainer.current = NULL;
+	
+	
+}
+#endif

@@ -1,0 +1,29 @@
+#ifndef __MEMORY__H
+#define __MEMORY__H
+
+
+//#include <windows.h>
+#include <stdlib.h>
+
+struct Memory_Struct
+{
+	int size;
+	int line;
+	char filename[256];
+	int* address;
+};
+
+void *vAlloc(int size, int line, char* filename);
+void vFree(void* chunk, int line, char* filename);
+void vMemoryResults();
+
+#define DEBUG 1
+
+#define Alloc(size)  vAlloc(size, __LINE__, __FILE__);
+
+#ifdef DEBUG
+#define Free(chunk) vFree(chunk, __LINE__, __FILE__);
+#else
+#define Free(chunk) free(chunk);
+#endif
+#endif
